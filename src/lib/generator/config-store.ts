@@ -7,6 +7,8 @@ interface ConfigStore {
   setConfig: (config: Partial<GeneratorConfig>) => void;
   setStatus: (status: Partial<GenerationStatus>) => void;
   addLog: (log: string) => void;
+  updateProgress: (progress: number) => void;
+  resetStatus: () => void;
 }
 
 export const useConfigStore = create<ConfigStore>((set) => ({
@@ -14,11 +16,13 @@ export const useConfigStore = create<ConfigStore>((set) => ({
     azureRTOSVersion: '6.2.0',
     outputPath: '',
     selectedFamily: 'STM32F7',
+    ipMode: 'standalone',
   },
   status: {
     status: 'idle',
     message: '',
     logs: [],
+    progress: 0,
   },
   setConfig: (newConfig) =>
     set((state) => ({
@@ -33,6 +37,19 @@ export const useConfigStore = create<ConfigStore>((set) => ({
       status: {
         ...state.status,
         logs: [...state.status.logs, `[${new Date().toISOString()}] ${log}`],
+      },
+    })),
+  updateProgress: (progress) =>
+    set((state) => ({
+      status: { ...state.status, progress },
+    })),
+  resetStatus: () =>
+    set((state) => ({
+      status: {
+        status: 'idle',
+        message: '',
+        logs: [],
+        progress: 0,
       },
     })),
 }));

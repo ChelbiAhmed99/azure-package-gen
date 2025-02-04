@@ -1,23 +1,12 @@
 import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ConfigurationForm } from "@/components/ConfigurationForm"
 import { GenerationLogs } from "@/components/GenerationLogs"
+import { GenerationControls } from "@/components/GenerationControls"
 import { useConfigStore } from "@/lib/generator/config-store"
 
 const Index = () => {
-  const { status, setStatus, addLog } = useConfigStore()
-
-  const handleGenerate = async (type: string) => {
-    setStatus({ status: "generating", message: `Generating ${type}...` })
-    addLog(`Starting ${type} generation...`)
-    
-    // TODO: Implement actual generation logic
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    addLog(`${type} generation completed`)
-    setStatus({ status: "success", message: `${type} generated successfully` })
-  }
+  const { status } = useConfigStore()
 
   return (
     <div className="container mx-auto p-4">
@@ -39,37 +28,7 @@ const Index = () => {
         <TabsContent value="generate">
           <Card className="p-4">
             <h2 className="text-xl font-semibold mb-4">Generate Package</h2>
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <Button 
-                  onClick={() => handleGenerate("PDSC")}
-                  disabled={status.status === "generating"}
-                >
-                  Generate PDSC
-                </Button>
-                <Button 
-                  onClick={() => handleGenerate("IP Mode")}
-                  disabled={status.status === "generating"}
-                >
-                  Generate IP Mode
-                </Button>
-                <Button 
-                  onClick={() => handleGenerate("IP Config")}
-                  disabled={status.status === "generating"}
-                >
-                  Generate IP Config
-                </Button>
-              </div>
-              <div>
-                <Button 
-                  className="w-full"
-                  onClick={() => handleGenerate("Complete Package")}
-                  disabled={status.status === "generating"}
-                >
-                  Generate Complete Package
-                </Button>
-              </div>
-            </div>
+            <GenerationControls />
           </Card>
         </TabsContent>
 

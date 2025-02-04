@@ -31,6 +31,10 @@ const formSchema = z.object({
   outputPath: z.string().min(1, {
     message: "Please specify an output path.",
   }),
+  ipMode: z.enum(["standalone", "middleware"], {
+    required_error: "Please select an IP mode.",
+  }),
+  templatePath: z.string().optional(),
 })
 
 export function ConfigurationForm() {
@@ -42,6 +46,8 @@ export function ConfigurationForm() {
       selectedFamily: config.selectedFamily,
       azureRTOSVersion: config.azureRTOSVersion,
       outputPath: config.outputPath,
+      ipMode: config.ipMode || "standalone",
+      templatePath: config.templatePath,
     },
   })
 
@@ -50,6 +56,8 @@ export function ConfigurationForm() {
       selectedFamily: values.selectedFamily,
       azureRTOSVersion: values.azureRTOSVersion,
       outputPath: values.outputPath,
+      ipMode: values.ipMode,
+      templatePath: values.templatePath,
     })
   }
 
@@ -110,6 +118,48 @@ export function ConfigurationForm() {
               </FormControl>
               <FormDescription>
                 Specify where to save the generated files.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="ipMode"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>IP Mode</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select IP mode" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="standalone">Standalone</SelectItem>
+                  <SelectItem value="middleware">Middleware</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                Choose between standalone or middleware IP mode.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="templatePath"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Template Path (Optional)</FormLabel>
+              <FormControl>
+                <Input placeholder="/path/to/templates" {...field} />
+              </FormControl>
+              <FormDescription>
+                Optional path to custom templates directory.
               </FormDescription>
               <FormMessage />
             </FormItem>
