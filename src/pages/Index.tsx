@@ -1,11 +1,24 @@
-import React from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ConfigurationForm } from "@/components/ConfigurationForm"
+import { GenerationLogs } from "@/components/GenerationLogs"
+import { useConfigStore } from "@/lib/generator/config-store"
 
 const Index = () => {
+  const { status, setStatus, addLog } = useConfigStore()
+
+  const handleGenerate = async (type: string) => {
+    setStatus({ status: "generating", message: `Generating ${type}...` })
+    addLog(`Starting ${type} generation...`)
+    
+    // TODO: Implement actual generation logic
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    addLog(`${type} generation completed`)
+    setStatus({ status: "success", message: `${type} generated successfully` })
+  }
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">STM32 Azure RTOS Package Generator</h1>
@@ -19,28 +32,7 @@ const Index = () => {
 
         <TabsContent value="config">
           <Card className="p-4">
-            <h2 className="text-xl font-semibold mb-4">Project Configuration</h2>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">STM32 Family</label>
-                <Select>
-                  <option value="STM32F7">STM32F7</option>
-                  <option value="STM32H7">STM32H7</option>
-                  <option value="STM32L4">STM32L4</option>
-                </Select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Azure RTOS Version</label>
-                <Input type="text" placeholder="6.2.0" />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Output Directory</label>
-                <Input type="text" placeholder="/output/path" />
-              </div>
-            </div>
+            <ConfigurationForm />
           </Card>
         </TabsContent>
 
@@ -49,12 +41,33 @@ const Index = () => {
             <h2 className="text-xl font-semibold mb-4">Generate Package</h2>
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
-                <Button>Generate PDSC</Button>
-                <Button>Generate IP Mode</Button>
-                <Button>Generate IP Config</Button>
+                <Button 
+                  onClick={() => handleGenerate("PDSC")}
+                  disabled={status.status === "generating"}
+                >
+                  Generate PDSC
+                </Button>
+                <Button 
+                  onClick={() => handleGenerate("IP Mode")}
+                  disabled={status.status === "generating"}
+                >
+                  Generate IP Mode
+                </Button>
+                <Button 
+                  onClick={() => handleGenerate("IP Config")}
+                  disabled={status.status === "generating"}
+                >
+                  Generate IP Config
+                </Button>
               </div>
               <div>
-                <Button className="w-full">Generate Complete Package</Button>
+                <Button 
+                  className="w-full"
+                  onClick={() => handleGenerate("Complete Package")}
+                  disabled={status.status === "generating"}
+                >
+                  Generate Complete Package
+                </Button>
               </div>
             </div>
           </Card>
@@ -63,16 +76,12 @@ const Index = () => {
         <TabsContent value="logs">
           <Card className="p-4">
             <h2 className="text-xl font-semibold mb-4">Generation Logs</h2>
-            <div className="bg-gray-100 p-4 rounded-md h-64 overflow-y-auto">
-              <pre className="text-sm">
-                {/* Logs will be displayed here */}
-              </pre>
-            </div>
+            <GenerationLogs />
           </Card>
         </TabsContent>
       </Tabs>
     </div>
-  );
-};
+  )
+}
 
-export default Index;
+export default Index
