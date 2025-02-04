@@ -1,10 +1,10 @@
-import { GeneratorConfig, GenerationResult, Template, STM32FamilyKey } from './types';
+import { GeneratorConfig, GenerationResult, Template, STM32Family, STM32FamilyKey } from './types';
 import { STM32_FAMILIES } from './stm32-families';
 
 export class Generator {
   private config: GeneratorConfig;
   private templates: Template[] = [];
-  private family: typeof STM32_FAMILIES[STM32FamilyKey];
+  private family: STM32Family;
 
   constructor(config: GeneratorConfig) {
     this.config = config;

@@ -20,6 +20,28 @@ export interface STM32Family {
   };
 }
 
+export type STM32FamilyKey = keyof typeof import('./stm32-families').STM32_FAMILIES;
+
+export interface ThreadXConfig {
+  maxThreads: number;
+  stackSize: number;
+  preemptionThreshold: number;
+  timeSlice: number;
+}
+
+export interface MiddlewareConfig {
+  fileX: boolean;
+  netXDuo: boolean;
+  usbX: boolean;
+  guix: boolean;
+}
+
+export interface DebugConfig {
+  traceEnabled: boolean;
+  performanceMetrics: boolean;
+  stackMonitoring: boolean;
+}
+
 export interface GeneratorConfig {
   azureRTOSVersion: string;
   outputPath: string;
@@ -27,41 +49,20 @@ export interface GeneratorConfig {
   templatePath?: string;
   ipMode: "standalone" | "middleware";
   advancedSettings: {
-    threadxConfig: {
-      maxThreads: number;
-      stackSize: number;
-      preemptionThreshold: number;
-      timeSlice: number;
-    };
-    middlewareConfig: {
-      fileX: boolean;
-      netXDuo: boolean;
-      usbX: boolean;
-      guix: boolean;
-    };
-    debugConfig: {
-      traceEnabled: boolean;
-      performanceMetrics: boolean;
-      stackMonitoring: boolean;
-    };
+    threadxConfig: ThreadXConfig;
+    middlewareConfig: MiddlewareConfig;
+    debugConfig: DebugConfig;
   };
-}
-
-export interface GenerationStatus {
-  status: 'idle' | 'generating' | 'success' | 'error';
-  message: string;
-  logs: string[];
-  progress: number;
-}
-
-export interface GenerationResult {
-  success: boolean;
-  message: string;
-  files: string[];
 }
 
 export interface Template {
   name: string;
   content: string;
   type: 'pdsc' | 'ip_mode' | 'ip_config' | 'application';
+}
+
+export interface GenerationResult {
+  success: boolean;
+  message: string;
+  files: string[];
 }

@@ -45,7 +45,26 @@ export const useConfigStore = create<ConfigStore>((set) => ({
   },
   setConfig: (newConfig) =>
     set((state) => ({
-      config: { ...state.config, ...newConfig },
+      config: {
+        ...state.config,
+        ...newConfig,
+        advancedSettings: {
+          ...state.config.advancedSettings,
+          ...(newConfig.advancedSettings || {}),
+          threadxConfig: {
+            ...state.config.advancedSettings.threadxConfig,
+            ...(newConfig.advancedSettings?.threadxConfig || {}),
+          },
+          middlewareConfig: {
+            ...state.config.advancedSettings.middlewareConfig,
+            ...(newConfig.advancedSettings?.middlewareConfig || {}),
+          },
+          debugConfig: {
+            ...state.config.advancedSettings.debugConfig,
+            ...(newConfig.advancedSettings?.debugConfig || {}),
+          },
+        },
+      },
     })),
   setStatus: (newStatus) =>
     set((state) => ({
@@ -63,7 +82,7 @@ export const useConfigStore = create<ConfigStore>((set) => ({
       status: { ...state.status, progress },
     })),
   resetStatus: () =>
-    set((state) => ({
+    set(() => ({
       status: {
         status: 'idle',
         message: '',
