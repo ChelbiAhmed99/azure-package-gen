@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useConfigStore } from "@/lib/generator/config-store"
 import { STM32_FAMILIES } from "@/lib/generator/stm32-families"
+import { GeneratorConfig } from "@/lib/generator/types"
 import {
   Accordion,
   AccordionContent,
