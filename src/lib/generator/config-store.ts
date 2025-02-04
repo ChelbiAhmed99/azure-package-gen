@@ -17,6 +17,25 @@ export const useConfigStore = create<ConfigStore>((set) => ({
     outputPath: '',
     selectedFamily: 'STM32F7',
     ipMode: 'standalone',
+    advancedSettings: {
+      threadxConfig: {
+        maxThreads: 8,
+        stackSize: 1024,
+        preemptionThreshold: 4,
+        timeSlice: 10,
+      },
+      middlewareConfig: {
+        fileX: false,
+        netXDuo: false,
+        usbX: false,
+        guix: false,
+      },
+      debugConfig: {
+        traceEnabled: false,
+        performanceMetrics: false,
+        stackMonitoring: false,
+      },
+    },
   },
   status: {
     status: 'idle',

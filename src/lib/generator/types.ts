@@ -9,6 +9,15 @@ export interface STM32Family {
     };
   };
   supportedPeripherals: string[];
+  features: {
+    fpu?: boolean;
+    trustZone?: boolean;
+    cache?: boolean;
+    dma?: boolean;
+    ethernet?: boolean;
+    usb?: boolean;
+    crypto?: boolean;
+  };
 }
 
 export interface GeneratorConfig {
@@ -16,7 +25,26 @@ export interface GeneratorConfig {
   outputPath: string;
   selectedFamily: string;
   templatePath?: string;
-  ipMode?: "standalone" | "middleware";
+  ipMode: "standalone" | "middleware";
+  advancedSettings: {
+    threadxConfig: {
+      maxThreads: number;
+      stackSize: number;
+      preemptionThreshold: number;
+      timeSlice: number;
+    };
+    middlewareConfig: {
+      fileX: boolean;
+      netXDuo: boolean;
+      usbX: boolean;
+      guix: boolean;
+    };
+    debugConfig: {
+      traceEnabled: boolean;
+      performanceMetrics: boolean;
+      stackMonitoring: boolean;
+    };
+  };
 }
 
 export interface GenerationStatus {
