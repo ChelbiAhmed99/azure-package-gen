@@ -70,35 +70,62 @@ export function ConfigurationForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      selectedFamily: config.selectedFamily,
-      azureRTOSVersion: config.azureRTOSVersion,
-      outputPath: config.outputPath,
+      selectedFamily: config.selectedFamily || '',
+      azureRTOSVersion: config.azureRTOSVersion || '',
+      outputPath: config.outputPath || '',
       ipMode: config.ipMode || "standalone",
-      templatePath: config.templatePath,
+      templatePath: config.templatePath || '',
       advancedSettings: {
         threadxConfig: {
-          maxThreads: 8,
-          stackSize: 1024,
-          preemptionThreshold: 4,
-          timeSlice: 10,
+          maxThreads: config.advancedSettings.threadxConfig.maxThreads,
+          stackSize: config.advancedSettings.threadxConfig.stackSize,
+          preemptionThreshold: config.advancedSettings.threadxConfig.preemptionThreshold,
+          timeSlice: config.advancedSettings.threadxConfig.timeSlice,
         },
         middlewareConfig: {
-          fileX: false,
-          netXDuo: false,
-          usbX: false,
-          guix: false,
+          fileX: config.advancedSettings.middlewareConfig.fileX,
+          netXDuo: config.advancedSettings.middlewareConfig.netXDuo,
+          usbX: config.advancedSettings.middlewareConfig.usbX,
+          guix: config.advancedSettings.middlewareConfig.guix,
         },
         debugConfig: {
-          traceEnabled: false,
-          performanceMetrics: false,
-          stackMonitoring: false,
+          traceEnabled: config.advancedSettings.debugConfig.traceEnabled,
+          performanceMetrics: config.advancedSettings.debugConfig.performanceMetrics,
+          stackMonitoring: config.advancedSettings.debugConfig.stackMonitoring,
         },
       },
     },
   })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    setConfig(values)
+    // Ensure all required fields are present before updating the store
+    const configUpdate: GeneratorConfig = {
+      selectedFamily: values.selectedFamily,
+      azureRTOSVersion: values.azureRTOSVersion,
+      outputPath: values.outputPath,
+      ipMode: values.ipMode,
+      templatePath: values.templatePath,
+      advancedSettings: {
+        threadxConfig: {
+          maxThreads: values.advancedSettings.threadxConfig.maxThreads,
+          stackSize: values.advancedSettings.threadxConfig.stackSize,
+          preemptionThreshold: values.advancedSettings.threadxConfig.preemptionThreshold,
+          timeSlice: values.advancedSettings.threadxConfig.timeSlice,
+        },
+        middlewareConfig: {
+          fileX: values.advancedSettings.middlewareConfig.fileX,
+          netXDuo: values.advancedSettings.middlewareConfig.netXDuo,
+          usbX: values.advancedSettings.middlewareConfig.usbX,
+          guix: values.advancedSettings.middlewareConfig.guix,
+        },
+        debugConfig: {
+          traceEnabled: values.advancedSettings.debugConfig.traceEnabled,
+          performanceMetrics: values.advancedSettings.debugConfig.performanceMetrics,
+          stackMonitoring: values.advancedSettings.debugConfig.stackMonitoring,
+        },
+      },
+    }
+    setConfig(configUpdate)
   }
 
   return (

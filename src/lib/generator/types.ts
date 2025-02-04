@@ -55,6 +55,13 @@ export interface GeneratorConfig {
   };
 }
 
+export interface GenerationStatus {
+  status: 'idle' | 'generating' | 'success' | 'error';
+  message: string;
+  logs: string[];
+  progress: number;
+}
+
 export interface Template {
   name: string;
   content: string;
