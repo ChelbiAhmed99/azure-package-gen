@@ -2,7 +2,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { Form } from "@/components/ui/form"
+import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useConfigStore } from "@/lib/generator/config-store"
 import { GeneratorConfig } from "@/lib/generator/types"
@@ -66,21 +66,21 @@ export function ConfigurationForm() {
       templatePath: config.templatePath || '',
       advancedSettings: {
         threadxConfig: {
-          maxThreads: config.advancedSettings.threadxConfig.maxThreads,
-          stackSize: config.advancedSettings.threadxConfig.stackSize,
-          preemptionThreshold: config.advancedSettings.threadxConfig.preemptionThreshold,
-          timeSlice: config.advancedSettings.threadxConfig.timeSlice,
+          maxThreads: config.advancedSettings.threadxConfig.maxThreads || 8,
+          stackSize: config.advancedSettings.threadxConfig.stackSize || 1024,
+          preemptionThreshold: config.advancedSettings.threadxConfig.preemptionThreshold || 4,
+          timeSlice: config.advancedSettings.threadxConfig.timeSlice || 10,
         },
         middlewareConfig: {
-          fileX: config.advancedSettings.middlewareConfig.fileX,
-          netXDuo: config.advancedSettings.middlewareConfig.netXDuo,
-          usbX: config.advancedSettings.middlewareConfig.usbX,
-          guix: config.advancedSettings.middlewareConfig.guix,
+          fileX: config.advancedSettings.middlewareConfig.fileX || false,
+          netXDuo: config.advancedSettings.middlewareConfig.netXDuo || false,
+          usbX: config.advancedSettings.middlewareConfig.usbX || false,
+          guix: config.advancedSettings.middlewareConfig.guix || false,
         },
         debugConfig: {
-          traceEnabled: config.advancedSettings.debugConfig.traceEnabled,
-          performanceMetrics: config.advancedSettings.debugConfig.performanceMetrics,
-          stackMonitoring: config.advancedSettings.debugConfig.stackMonitoring,
+          traceEnabled: config.advancedSettings.debugConfig.traceEnabled || false,
+          performanceMetrics: config.advancedSettings.debugConfig.performanceMetrics || false,
+          stackMonitoring: config.advancedSettings.debugConfig.stackMonitoring || false,
         },
       },
     },
