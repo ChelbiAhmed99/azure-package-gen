@@ -90,7 +90,7 @@ export function ConfigurationForm() {
   })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // Ensure all required properties are set before calling setConfig
+    // Create a complete config object with all required properties
     const completeConfig: GeneratorConfig = {
       selectedFamily: values.selectedFamily,
       azureRTOSVersion: values.azureRTOSVersion,
