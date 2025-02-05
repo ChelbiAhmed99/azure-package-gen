@@ -56,34 +56,37 @@ const formSchema = z.object({
 export function ConfigurationForm() {
   const { config, setConfig } = useConfigStore()
   
-  const form = useForm<GeneratorConfig>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      selectedFamily: config.selectedFamily || '',
-      azureRTOSVersion: config.azureRTOSVersion || '',
-      outputPath: config.outputPath || '',
-      ipMode: config.ipMode || "standalone",
-      templatePath: config.templatePath || '',
-      advancedSettings: {
-        threadxConfig: {
-          maxThreads: config.advancedSettings.threadxConfig.maxThreads || 8,
-          stackSize: config.advancedSettings.threadxConfig.stackSize || 1024,
-          preemptionThreshold: config.advancedSettings.threadxConfig.preemptionThreshold || 4,
-          timeSlice: config.advancedSettings.threadxConfig.timeSlice || 10,
-        },
-        middlewareConfig: {
-          fileX: config.advancedSettings.middlewareConfig.fileX || false,
-          netXDuo: config.advancedSettings.middlewareConfig.netXDuo || false,
-          usbX: config.advancedSettings.middlewareConfig.usbX || false,
-          guix: config.advancedSettings.middlewareConfig.guix || false,
-        },
-        debugConfig: {
-          traceEnabled: config.advancedSettings.debugConfig.traceEnabled || false,
-          performanceMetrics: config.advancedSettings.debugConfig.performanceMetrics || false,
-          stackMonitoring: config.advancedSettings.debugConfig.stackMonitoring || false,
-        },
+  // Initialize with complete required values
+  const defaultValues: GeneratorConfig = {
+    selectedFamily: config.selectedFamily || '',
+    azureRTOSVersion: config.azureRTOSVersion || '',
+    outputPath: config.outputPath || '',
+    ipMode: config.ipMode || "standalone",
+    templatePath: config.templatePath,
+    advancedSettings: {
+      threadxConfig: {
+        maxThreads: config.advancedSettings?.threadxConfig?.maxThreads ?? 8,
+        stackSize: config.advancedSettings?.threadxConfig?.stackSize ?? 1024,
+        preemptionThreshold: config.advancedSettings?.threadxConfig?.preemptionThreshold ?? 4,
+        timeSlice: config.advancedSettings?.threadxConfig?.timeSlice ?? 10,
+      },
+      middlewareConfig: {
+        fileX: config.advancedSettings?.middlewareConfig?.fileX ?? false,
+        netXDuo: config.advancedSettings?.middlewareConfig?.netXDuo ?? false,
+        usbX: config.advancedSettings?.middlewareConfig?.usbX ?? false,
+        guix: config.advancedSettings?.middlewareConfig?.guix ?? false,
+      },
+      debugConfig: {
+        traceEnabled: config.advancedSettings?.debugConfig?.traceEnabled ?? false,
+        performanceMetrics: config.advancedSettings?.debugConfig?.performanceMetrics ?? false,
+        stackMonitoring: config.advancedSettings?.debugConfig?.stackMonitoring ?? false,
       },
     },
+  }
+  
+  const form = useForm<GeneratorConfig>({
+    resolver: zodResolver(formSchema),
+    defaultValues,
   })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
