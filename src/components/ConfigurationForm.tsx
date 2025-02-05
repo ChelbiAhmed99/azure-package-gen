@@ -92,7 +92,11 @@ export function ConfigurationForm() {
   function onSubmit(values: z.infer<typeof formSchema>) {
     // Ensure all required properties are set before calling setConfig
     const completeConfig: GeneratorConfig = {
-      ...values,
+      selectedFamily: values.selectedFamily,
+      azureRTOSVersion: values.azureRTOSVersion,
+      outputPath: values.outputPath,
+      ipMode: values.ipMode,
+      templatePath: values.templatePath,
       advancedSettings: {
         threadxConfig: {
           maxThreads: values.advancedSettings.threadxConfig.maxThreads,
