@@ -7,9 +7,10 @@ import { GenerationControls } from "@/components/GenerationControls"
 import { useConfigStore } from "@/lib/generator/config-store"
 import { CircuitBoard, FileCode, Terminal, Download, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { toast } from "@/hooks/use-toast"
 
 const Index = () => {
-  const { status, config } = useConfigStore()
+  const { status, config, setConfig } = useConfigStore()
 
   const handleExportConfig = () => {
     const configJson = JSON.stringify(config, null, 2)
@@ -22,6 +23,10 @@ const Index = () => {
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
+    toast({
+      title: "Configuration Exported",
+      description: "Your configuration has been exported successfully.",
+    })
   }
 
   const handleImportConfig = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,10 +36,18 @@ const Index = () => {
       reader.onload = (e) => {
         try {
           const importedConfig = JSON.parse(e.target?.result as string)
-          // Add validation here if needed
           setConfig(importedConfig)
+          toast({
+            title: "Configuration Imported",
+            description: "Your configuration has been imported successfully.",
+          })
         } catch (error) {
           console.error('Error parsing config file:', error)
+          toast({
+            variant: "destructive",
+            title: "Import Failed",
+            description: "Failed to import configuration. Please check the file format.",
+          })
         }
       }
       reader.readAsText(file)
