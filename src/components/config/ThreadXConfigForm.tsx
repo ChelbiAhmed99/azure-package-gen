@@ -86,7 +86,7 @@ export function ThreadXConfigForm({ form }: ThreadXConfigFormProps) {
                 {...field} 
                 onChange={e => field.onChange(parseInt(e.target.value))} 
               />
-            </Control>
+            </FormControl>
             <FormDescription>
               Thread time slice in ticks (0-1000)
             </FormDescription>
