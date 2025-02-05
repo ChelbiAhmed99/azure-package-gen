@@ -17,6 +17,8 @@ import { BasicConfigForm } from "./config/BasicConfigForm"
 import { ThreadXConfigForm } from "./config/ThreadXConfigForm"
 import { MiddlewareConfigForm } from "./config/MiddlewareConfigForm"
 import { DebugConfigForm } from "./config/DebugConfigForm"
+import { Card } from "@/components/ui/card"
+import { Settings, Cpu, Network, Bug } from "lucide-react"
 
 const formSchema = z.object({
   selectedFamily: z.string({
@@ -56,7 +58,6 @@ const formSchema = z.object({
 export function ConfigurationForm() {
   const { config, setConfig } = useConfigStore()
   
-  // Initialize with complete required values
   const defaultValues: GeneratorConfig = {
     selectedFamily: config.selectedFamily || '',
     azureRTOSVersion: config.azureRTOSVersion || '',
@@ -90,7 +91,6 @@ export function ConfigurationForm() {
   })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // Create a complete config object with all required properties
     const completeConfig: GeneratorConfig = {
       selectedFamily: values.selectedFamily,
       azureRTOSVersion: values.azureRTOSVersion,
@@ -123,49 +123,85 @@ export function ConfigurationForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <BasicConfigForm form={form} />
+        <Card className="p-6 bg-white/10 backdrop-blur-lg border border-white/20">
+          <div className="space-y-2 mb-6">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">Basic Configuration</h2>
+            <p className="text-gray-500 dark:text-gray-400">Configure the basic settings for your Azure RTOS package.</p>
+          </div>
+          <BasicConfigForm form={form} />
+        </Card>
         
-        <Accordion type="single" collapsible className="w-full">
-          <AccordionItem value="threadx-config">
-            <AccordionTrigger>ThreadX Configuration</AccordionTrigger>
-            <AccordionContent>
+        <Accordion type="single" collapsible className="w-full space-y-4">
+          <AccordionItem value="threadx-config" className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg">
+            <AccordionTrigger className="px-6">
+              <div className="flex items-center gap-2">
+                <Cpu className="w-5 h-5 text-blue-500" />
+                <span>ThreadX Configuration</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-6 pb-6">
               <ThreadXConfigForm form={form} />
             </AccordionContent>
           </AccordionItem>
           
-          <AccordionItem value="middleware-config">
-            <AccordionTrigger>Middleware Configuration</AccordionTrigger>
-            <AccordionContent>
+          <AccordionItem value="middleware-config" className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg">
+            <AccordionTrigger className="px-6">
+              <div className="flex items-center gap-2">
+                <Network className="w-5 h-5 text-green-500" />
+                <span>Middleware Configuration</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-6 pb-6">
               <MiddlewareConfigForm form={form} />
             </AccordionContent>
           </AccordionItem>
           
-          <AccordionItem value="debug-config">
-            <AccordionTrigger>Debug Configuration</AccordionTrigger>
-            <AccordionContent>
+          <AccordionItem value="debug-config" className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg">
+            <AccordionTrigger className="px-6">
+              <div className="flex items-center gap-2">
+                <Bug className="w-5 h-5 text-orange-500" />
+                <span>Debug Configuration</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-6 pb-6">
               <DebugConfigForm form={form} />
             </AccordionContent>
           </AccordionItem>
         </Accordion>
         
-        <FormField
-          control={form.control}
-          name="templatePath"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Template Path (Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder="/path/to/templates" {...field} />
-              </FormControl>
-              <FormDescription>
-                Optional path to custom templates directory.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <Card className="p-6 bg-white/10 backdrop-blur-lg border border-white/20">
+          <div className="flex items-center gap-2 mb-4">
+            <Settings className="w-5 h-5 text-purple-500" />
+            <h3 className="text-lg font-semibold">Advanced Settings</h3>
+          </div>
+          <FormField
+            control={form.control}
+            name="templatePath"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Template Path (Optional)</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="/path/to/templates" 
+                    {...field} 
+                    className="bg-white/5 border-white/10 focus:border-blue-500/50 focus:ring-blue-500/30"
+                  />
+                </FormControl>
+                <FormDescription className="text-gray-500 dark:text-gray-400">
+                  Optional path to custom templates directory.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </Card>
         
-        <Button type="submit">Save Configuration</Button>
+        <Button 
+          type="submit"
+          className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 hover:scale-[1.02]"
+        >
+          Save Configuration
+        </Button>
       </form>
     </Form>
   )
