@@ -90,7 +90,30 @@ export function ConfigurationForm() {
   })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    setConfig(values)
+    // Ensure all required properties are set before calling setConfig
+    const completeConfig: GeneratorConfig = {
+      ...values,
+      advancedSettings: {
+        threadxConfig: {
+          maxThreads: values.advancedSettings.threadxConfig.maxThreads,
+          stackSize: values.advancedSettings.threadxConfig.stackSize,
+          preemptionThreshold: values.advancedSettings.threadxConfig.preemptionThreshold,
+          timeSlice: values.advancedSettings.threadxConfig.timeSlice,
+        },
+        middlewareConfig: {
+          fileX: values.advancedSettings.middlewareConfig.fileX,
+          netXDuo: values.advancedSettings.middlewareConfig.netXDuo,
+          usbX: values.advancedSettings.middlewareConfig.usbX,
+          guix: values.advancedSettings.middlewareConfig.guix,
+        },
+        debugConfig: {
+          traceEnabled: values.advancedSettings.debugConfig.traceEnabled,
+          performanceMetrics: values.advancedSettings.debugConfig.performanceMetrics,
+          stackMonitoring: values.advancedSettings.debugConfig.stackMonitoring,
+        },
+      },
+    }
+    setConfig(completeConfig)
   }
 
   return (
