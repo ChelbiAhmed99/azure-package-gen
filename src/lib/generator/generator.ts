@@ -1,3 +1,4 @@
+
 import { GeneratorConfig, GenerationResult, Template, STM32Family, STM32FamilyKey } from './types';
 import { STM32_FAMILIES } from './stm32-families';
 import { FileGenerator } from './file-generator';
@@ -18,129 +19,127 @@ export class Generator {
     const { threadxConfig } = this.config.advancedSettings;
     
     return `
-#ifndef THREADX_CONFIG_H
-#define THREADX_CONFIG_H
+#ifndef TX_USER_H
+#define TX_USER_H
 
-/* ThreadX Configuration */
-#define TX_MAX_PRIORITIES                       32
-#define TX_MAX_THREADS                         ${threadxConfig.maxThreads}
-#define TX_TIMER_THREAD_STACK_SIZE             ${threadxConfig.stackSize}
-#define TX_TIMER_THREAD_PREEMPTION_THRESHOLD   ${threadxConfig.preemptionThreshold}
-#define TX_TIMER_THREAD_TIME_SLICE             ${threadxConfig.timeSlice}
+/* Define various ThreadX parameters */
+#define TX_TIMER_TICKS_PER_SECOND    ${1000 / threadxConfig.timeSlice}
+#define TX_MAX_PRIORITIES            32
+#define TX_MINIMUM_STACK             ${this.calculateMinStack()}
+#define TX_TIMER_THREAD_STACK_SIZE   ${threadxConfig.stackSize}
+#define TX_TIMER_THREAD_PRIORITY     ${threadxConfig.preemptionThreshold}
 
-/* Debug Features */
-#define TX_ENABLE_EVENT_TRACE                  ${this.config.advancedSettings.debugConfig.traceEnabled ? 1 : 0}
-#define TX_ENABLE_PERFORMANCE_INFO             ${this.config.advancedSettings.debugConfig.performanceMetrics ? 1 : 0}
-#define TX_ENABLE_STACK_CHECKING              ${this.config.advancedSettings.debugConfig.stackMonitoring ? 1 : 0}
-
-/* CPU Configuration */
-#define TX_CORTEX_M_TYPE                      ${this.getCortexMType()}
-#define TX_PORT_SPECIFIC_BUILD_OPTIONS        "${this.getPortSpecificOptions()}"
-
-/* Memory Configuration */
-#define TX_MINIMUM_STACK                       ${this.calculateMinStack()}
-
-/* Feature Configuration */
+/* Enable ThreadX features based on configuration */
 ${this.generateFeatureConfig()}
 
-#endif /* THREADX_CONFIG_H */
-    `;
-  }
+/* Performance and Debug Configuration */
+#define TX_ENABLE_EVENT_TRACE        ${this.config.advancedSettings.debugConfig.traceEnabled ? 1 : 0}
+#define TX_ENABLE_STACK_CHECKING     ${this.config.advancedSettings.debugConfig.stackMonitoring ? 1 : 0}
+#define TX_ENABLE_PERFORMANCE_INFO   ${this.config.advancedSettings.debugConfig.performanceMetrics ? 1 : 0}
 
-  private getCortexMType(): number {
-    const core = this.family.cores[0];
-    switch (core) {
-      case 'Cortex-M0': return 0;
-      case 'Cortex-M3': return 3;
-      case 'Cortex-M4': return 4;
-      case 'Cortex-M7': return 7;
-      case 'Cortex-M33': return 33;
-      default: return 0;
-    }
-  }
+/* CPU and Architecture Configuration */
+#define TX_THREAD_SMP_CLUSTERS       ${this.family.cores.length}
+#define TX_PORT_SPECIFIC_PRE_SCHEDULER_INITIALIZATION /* STM32 specific initialization */
 
-  private getPortSpecificOptions(): string {
-    const options = [];
-    if (this.family.features.fpu) {
-      options.push('TX_ENABLE_FPU_SUPPORT');
-    }
-    if (this.family.features.trustZone) {
-      options.push('TX_ENABLE_TRUSTZONE');
-    }
-    return options.join(' ');
+#endif
+`;
   }
 
   private calculateMinStack(): number {
-    // Base stack size calculation based on core type
-    let baseStack = 1024;
-    if (this.family.cores[0].includes('M7')) {
-      baseStack = 2048;
-    } else if (this.family.cores[0].includes('M33')) {
-      baseStack = 1536;
-    }
-    
-    // Add extra stack for enabled features
-    if (this.config.advancedSettings.debugConfig.traceEnabled) {
-      baseStack += 512;
-    
-    }
-    if (this.config.advancedSettings.debugConfig.performanceMetrics) {
-      baseStack += 256;
-    }
-    
-    return baseStack;
+    const baseStack = this.family.cores[0].includes('M7') ? 2048 : 1024;
+    const debugOverhead = (
+      (this.config.advancedSettings.debugConfig.traceEnabled ? 512 : 0) +
+      (this.config.advancedSettings.debugConfig.performanceMetrics ? 256 : 0) +
+      (this.config.advancedSettings.debugConfig.stackMonitoring ? 128 : 0)
+    );
+    return baseStack + debugOverhead;
   }
 
   private generateFeatureConfig(): string {
     const { middlewareConfig } = this.config.advancedSettings;
-    const config = [];
-    
+    const features = [];
+
     if (middlewareConfig.fileX) {
-      config.push('#define TX_ENABLE_FILEX_INTEGRATION');
+      features.push('#define FX_ENABLED');
+      features.push('#define FX_MAX_LONG_NAME_LEN     256');
+      features.push('#define FX_MAX_LAST_NAME_LEN     256');
+      features.push('#define FX_UPDATE_RATE_IN_SECONDS 10');
     }
+
     if (middlewareConfig.netXDuo) {
-      config.push('#define TX_ENABLE_NETX_INTEGRATION');
+      features.push('#define NX_ENABLED');
+      features.push('#define NX_TCP_ENABLE');
+      features.push('#define NX_UDP_ENABLE');
+      features.push('#define NX_IPV6_ENABLE');
     }
+
     if (middlewareConfig.usbX) {
-      config.push('#define TX_ENABLE_USBX_INTEGRATION');
+      features.push('#define UX_ENABLED');
+      features.push('#define UX_DEVICE_ENABLE');
+      features.push('#define UX_HOST_ENABLE');
     }
+
     if (middlewareConfig.guix) {
-      config.push('#define TX_ENABLE_GUIX_INTEGRATION');
+      features.push('#define GX_ENABLED');
+      features.push('#define GX_SYSTEM_TIMER_MS  20');
+      features.push('#define GX_DISABLE_MULTITHREAD_SUPPORT');
     }
-    
-    return config.join('\n');
+
+    return features.join('\n');
   }
 
   async generatePDSC(): Promise<GenerationResult> {
     try {
       const pdscContent = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<package schemaVersion="1.7.7" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="PACK.xsd">
+<package xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" schemaVersion="1.7.7" xs:noNamespaceSchemaLocation="PACK.xsd">
   <vendor>STMicroelectronics</vendor>
-  <name>${this.config.selectedFamily}_AZURE_RTOS</name>
-  <description>Azure RTOS Software for ${this.config.selectedFamily} Series</description>
-  <url>https://github.com/azure-rtos</url>
-  <supportContact>https://github.com/azure-rtos/threadx/issues</supportContact>
-  <license>LICENSE.txt</license>
+  <name>X-CUBE-AZRTOS-${this.config.selectedFamily}</name>
+  <description>STM32Cube Azure RTOS Software for ${this.config.selectedFamily} Series</description>
+  <url>https://github.com/STMicroelectronics/x-cube-azrtos-${this.config.selectedFamily.toLowerCase()}</url>
   
   <releases>
     <release version="${this.config.azureRTOSVersion}">
-      <description>Azure RTOS ${this.config.azureRTOSVersion} release for ${this.config.selectedFamily}</description>
+      <description>X-CUBE-AZRTOS-${this.config.selectedFamily} v${this.config.azureRTOSVersion} for STM32Cube</description>
     </release>
   </releases>
-  
+
   <keywords>
-    <keyword>Azure RTOS</keyword>
+    <keyword>RTOS</keyword>
     <keyword>ThreadX</keyword>
+    <keyword>Azure RTOS</keyword>
+    <keyword>STM32Cube</keyword>
     <keyword>${this.config.selectedFamily}</keyword>
     ${this.generateMiddlewareKeywords()}
   </keywords>
-  
-  <devices>
-    ${this.generateDeviceSupport()}
-  </devices>
+
+  <conditions>
+    <condition id="ARM Toolchain">
+      <description>ARM compilation tools</description>
+      <require Tcompiler="ARMCC"/>
+    </condition>
+    <condition id="GCC Toolchain">
+      <description>GNU Tools for ARM Embedded Processors</description>
+      <require Tcompiler="GCC"/>
+    </condition>
+    <condition id="IAR Toolchain">
+      <description>IAR compilation tools</description>
+      <require Tcompiler="IAR"/>
+    </condition>
+  </conditions>
+
+  <components>
+    <component Cclass="RTOS" Cgroup="Azure RTOS" Csub="ThreadX" Cversion="${this.config.azureRTOSVersion}">
+      <description>Azure RTOS ThreadX</description>
+      <files>
+        <file category="header" name="ThreadX/Inc/tx_user.h" version="${this.config.azureRTOSVersion}"/>
+        <file category="source" name="ThreadX/Src/tx_initialize_low_level.s" version="${this.config.azureRTOSVersion}"/>
+      </files>
+    </component>
+    ${this.generateMiddlewareComponents()}
+  </components>
 </package>`;
 
-      const filename = `${this.config.selectedFamily.toLowerCase()}_azure_rtos_pdsc.xml`;
+      const filename = `X-CUBE-AZRTOS-${this.config.selectedFamily.toLowerCase()}.pdsc`;
       this.fileGenerator.addFile(filename, pdscContent);
       
       return {
@@ -159,87 +158,78 @@ ${this.generateFeatureConfig()}
 
   private generateMiddlewareKeywords(): string {
     const { middlewareConfig } = this.config.advancedSettings;
-    const keywords = [
-      '<keyword>ThreadX</keyword>',
-      '<keyword>CMSIS</keyword>',
-      '<keyword>STM32Cube</keyword>'
-    ];
+    const keywords = [];
     
     if (middlewareConfig.fileX) keywords.push('<keyword>FileX</keyword>');
-    if (middlewareConfig.netXDuo) {
-      keywords.push('<keyword>NetX Duo</keyword>');
-      keywords.push('<keyword>Networking</keyword>');
-    }
-    if (middlewareConfig.usbX) {
-      keywords.push('<keyword>USBX</keyword>');
-      keywords.push('<keyword>USB</keyword>');
-    }
-    if (middlewareConfig.guix) {
-      keywords.push('<keyword>GUIX</keyword>');
-      keywords.push('<keyword>Display</keyword>');
-    }
+    if (middlewareConfig.netXDuo) keywords.push('<keyword>NetX Duo</keyword>');
+    if (middlewareConfig.usbX) keywords.push('<keyword>USBX</keyword>');
+    if (middlewareConfig.guix) keywords.push('<keyword>GUIX</keyword>');
     
     return keywords.join('\n    ');
   }
 
-  private generateDeviceSupport(): string {
-    return this.family.series.map(series => `
-    <family Dfamily="${series}">
-      <processor Dcore="${this.family.cores[0]}"
-                DcoreVersion="${this.getCoreVersion()}"
-                Dfpu="${this.family.features.fpu ? '1' : '0'}"
-                Dmpu="${this.family.features.trustZone ? '1' : '0'}"
-                Dendian="Little-endian"
-                Dclock="${this.getDefaultClock(series)}"/>
-      ${this.generateMemoryVariants(series)}
-    </family>`
-    ).join('\n');
-  }
+  private generateMiddlewareComponents(): string {
+    const { middlewareConfig } = this.config.advancedSettings;
+    const components = [];
 
-  private getCoreVersion(): string {
-    const core = this.family.cores[0];
-    switch (core) {
-      case 'Cortex-M7': return 'r1p1';
-      case 'Cortex-M4': return 'r0p1';
-      case 'Cortex-M33': return 'r1p0';
-      default: return 'r0p0';
+    if (middlewareConfig.fileX) {
+      components.push(`
+    <component Cclass="File System" Cgroup="Azure RTOS" Csub="FileX" Cversion="${this.config.azureRTOSVersion}">
+      <description>Azure RTOS FileX</description>
+      <files>
+        <file category="header" name="FileX/Inc/fx_user.h"/>
+        <file category="source" name="FileX/Src/fx_initialize_low_level.c"/>
+      </files>
+    </component>`);
     }
-  }
 
-  private getDefaultClock(series: string): string {
-    if (series.includes('H7')) return '480000000';
-    if (series.includes('F7')) return '216000000';
-    return '180000000';
-  }
+    if (middlewareConfig.netXDuo) {
+      components.push(`
+    <component Cclass="Network" Cgroup="Azure RTOS" Csub="NetX Duo" Cversion="${this.config.azureRTOSVersion}">
+      <description>Azure RTOS NetX Duo</description>
+      <files>
+        <file category="header" name="NetXDuo/Inc/nx_user.h"/>
+        <file category="source" name="NetXDuo/Src/nx_initialize_low_level.c"/>
+      </files>
+    </component>`);
+    }
 
-  private generateMemoryVariants(series: string): string {
-    return Object.entries(this.family.memoryVariants).map(([variant, memory]) => `
-      <device Dname="${series}_${variant}">
-        <memory id="IROM1" start="0x08000000" size="${memory.flashSize}" startup="1" default="1"/>
-        <memory id="IRAM1" start="0x20000000" size="${memory.ramSize}" init="0" default="1"/>
-        ${this.generatePeripherals()}
-      </device>`
-    ).join('\n');
-  }
+    if (middlewareConfig.usbX) {
+      components.push(`
+    <component Cclass="USB" Cgroup="Azure RTOS" Csub="USBX" Cversion="${this.config.azureRTOSVersion}">
+      <description>Azure RTOS USBX</description>
+      <files>
+        <file category="header" name="USBX/Inc/ux_user.h"/>
+        <file category="source" name="USBX/Src/ux_initialize_low_level.c"/>
+      </files>
+    </component>`);
+    }
 
-  private generatePeripherals(): string {
-    return this.family.supportedPeripherals.map(peripheral => 
-      `<peripheral>${peripheral}</peripheral>`
-    ).join('\n        ');
+    if (middlewareConfig.guix) {
+      components.push(`
+    <component Cclass="Graphics" Cgroup="Azure RTOS" Csub="GUIX" Cversion="${this.config.azureRTOSVersion}">
+      <description>Azure RTOS GUIX</description>
+      <files>
+        <file category="header" name="GUIX/Inc/gx_user.h"/>
+        <file category="source" name="GUIX/Src/gx_initialize_low_level.c"/>
+      </files>
+    </component>`);
+    }
+
+    return components.join('\n');
   }
 
   async generateIPMode(): Promise<GenerationResult> {
     try {
       const threadxConfig = await this.generateThreadXConfig();
-      const txUserContent = this.generateTxUserContent();
       
-      this.fileGenerator.addFile('threadx_config.h', threadxConfig);
-      this.fileGenerator.addFile('tx_user.h', txUserContent);
+      this.fileGenerator.addFile('tx_user.h', threadxConfig);
+      this.fileGenerator.setMetadata('type', 'ip_mode');
       
       return {
         success: true,
-        message: 'IP Mode files generated successfully',
-        files: ['threadx_config.h', 'tx_user.h']
+        message: 'IP Mode configuration generated successfully',
+        files: ['tx_user.h']
       };
     } catch (error) {
       return {
@@ -250,62 +240,38 @@ ${this.generateFeatureConfig()}
     }
   }
 
-  private generateTxUserContent(): string {
-    return `
-#ifndef TX_USER_H
-#define TX_USER_H
-
-/* USER CODE BEGIN 1 */
-
-/* USER CODE END 1 */
-
-/* Define various build options for the ThreadX port.  The application should either make changes
-   here by commenting or un-commenting the conditional compilation defined OR supply the defines 
-   though the compiler's equivalent of the -D option.  */
-
-/* For ThreadX/STM32Cube integration, see the following defines: TX_INCLUDE_USER_DEFINE_FILE, TX_CORTEX_M_TYPE,
-   TX_TIMER_TICKS_PER_SECOND, TX_TIMER_PROCESS_IN_ISR, TX_PORT_SPECIFIC_BUILD_OPTIONS */
-
-/* USER CODE BEGIN 2 */
-
-/* USER CODE END 2 */
-
-#endif
-`;
-  }
-
   async generateIPConfig(): Promise<GenerationResult> {
     try {
       const { middlewareConfig } = this.config.advancedSettings;
       const files: string[] = [];
-      
+
       if (middlewareConfig.fileX) {
-        const fxContent = this.generateFileXConfig();
-        this.fileGenerator.addFile('fx_user.h', fxContent);
+        const fxConfig = this.generateFileXConfig();
+        this.fileGenerator.addFile('fx_user.h', fxConfig);
         files.push('fx_user.h');
       }
-      
+
       if (middlewareConfig.netXDuo) {
-        const nxContent = this.generateNetXConfig();
-        this.fileGenerator.addFile('nx_user.h', nxContent);
+        const nxConfig = this.generateNetXDuoConfig();
+        this.fileGenerator.addFile('nx_user.h', nxConfig);
         files.push('nx_user.h');
       }
-      
+
       if (middlewareConfig.usbX) {
-        const uxContent = this.generateUSBXConfig();
-        this.fileGenerator.addFile('ux_user.h', uxContent);
+        const uxConfig = this.generateUSBXConfig();
+        this.fileGenerator.addFile('ux_user.h', uxConfig);
         files.push('ux_user.h');
       }
-      
+
       if (middlewareConfig.guix) {
-        const gxContent = this.generateGUIXConfig();
-        this.fileGenerator.addFile('gx_user.h', gxContent);
+        const gxConfig = this.generateGUIXConfig();
+        this.fileGenerator.addFile('gx_user.h', gxConfig);
         files.push('gx_user.h');
       }
-      
+
       return {
         success: true,
-        message: 'IP Config files generated successfully',
+        message: 'Middleware configurations generated successfully',
         files
       };
     } catch (error) {
@@ -318,33 +284,82 @@ ${this.generateFeatureConfig()}
   }
 
   private generateFileXConfig(): string {
-    return `${this.config.outputPath}/fx_user.h`;
+    return `#ifndef FX_USER_H
+#define FX_USER_H
+
+#define FX_MAX_LONG_NAME_LEN                 256
+#define FX_MAX_LAST_NAME_LEN                 256
+#define FX_MAX_SECTOR_CACHE                  256
+#define FX_FAT_MAP_SIZE                      128
+#define FX_MAX_FAT_CACHE                     16
+
+#endif
+`;
   }
 
-  private generateNetXConfig(): string {
-    return `${this.config.outputPath}/nx_user.h`;
+  private generateNetXDuoConfig(): string {
+    return `#ifndef NX_USER_H
+#define NX_USER_H
+
+#define NX_ENABLE_IP_RAW_PACKET_FILTER
+#define NX_ENABLE_TCP_WINDOW_SCALING
+#define NX_ENABLE_EXTENDED_NOTIFY_SUPPORT
+#define NX_TCP_MAXIMUM_RETRIES              10
+#define NX_TCP_RETRY_SHIFT                  1
+#define NX_TCP_KEEPALIVE_INITIAL           600
+#define NX_ARP_MAXIMUM_RETRIES             18
+#define NX_ARP_EXPIRATION_RATE             600
+
+#endif
+`;
   }
 
   private generateUSBXConfig(): string {
-    return `${this.config.outputPath}/ux_user.h`;
+    return `#ifndef UX_USER_H
+#define UX_USER_H
+
+#define UX_ENABLE_ASSERT
+#define UX_MAX_DEVICES                      8
+#define UX_MAX_HCD                          2
+#define UX_MAX_ED                           80
+#define UX_MAX_TD                           128
+#define UX_MAX_ISO_TD                       1
+
+#endif
+`;
   }
 
   private generateGUIXConfig(): string {
-    return `${this.config.outputPath}/gx_user.h`;
+    return `#ifndef GX_USER_H
+#define GX_USER_H
+
+#define GX_SYSTEM_TIMER_MS                  20
+#define GX_DISABLE_MULTITHREAD_SUPPORT
+#define GX_ENABLE_DEPRECATED_STRING_API
+#define GX_ENABLE_DEPRECATED_SHOW_HIDE_API
+
+#endif
+`;
   }
 
   async generateAll(): Promise<GenerationResult> {
     try {
-      await this.generatePDSC();
-      await this.generateIPMode();
-      await this.generateIPConfig();
+      const pdscResult = await this.generatePDSC();
+      const ipModeResult = await this.generateIPMode();
+      const ipConfigResult = await this.generateIPConfig();
       
-      const zipFileName = `${this.config.selectedFamily.toLowerCase()}_azure_rtos_package.zip`;
+      const allFiles = [
+        ...pdscResult.files,
+        ...ipModeResult.files,
+        ...ipConfigResult.files
+      ];
+
+      const zipFileName = `X-CUBE-AZRTOS-${this.config.selectedFamily.toLowerCase()}_v${this.config.azureRTOSVersion}.zip`;
       await this.fileGenerator.generateZip(zipFileName);
       
       return {
         success: true,
-        message: 'Complete package generated and downloaded successfully',
+        message: 'Complete package generated successfully',
         files: [zipFileName]
       };
     } catch (error) {
