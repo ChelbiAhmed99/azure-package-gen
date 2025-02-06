@@ -78,4 +78,27 @@ export function DebugConfigForm({ form }: DebugConfigFormProps) {
           render={({ field }) => (
             <FormItem className="flex items-start space-x-4 space-y-0">
               <FormControl>
-                <div className="flex items-center space-x
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    className="data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500"
+                  />
+                  <div className="flex items-center space-x-2">
+                    <Bug className="w-4 h-4 text-purple-500" />
+                    <FormLabel className="text-gradient font-semibold cursor-pointer">
+                      Stack Monitoring
+                    </FormLabel>
+                  </div>
+                </div>
+              </FormControl>
+              <FormDescription className="text-gray-400 mt-1">
+                Enable stack usage monitoring
+              </FormDescription>
+            </FormItem>
+          )}
+        />
+      </Card>
+    </div>
+  )
+}
