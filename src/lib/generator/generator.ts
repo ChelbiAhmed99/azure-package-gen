@@ -1,14 +1,17 @@
 import { GeneratorConfig, GenerationResult, Template, STM32Family, STM32FamilyKey } from './types';
 import { STM32_FAMILIES } from './stm32-families';
+import { FileGenerator } from './file-generator';
 
 export class Generator {
   private config: GeneratorConfig;
   private templates: Template[] = [];
   private family: STM32Family;
+  private fileGenerator: FileGenerator;
 
   constructor(config: GeneratorConfig) {
     this.config = config;
     this.family = STM32_FAMILIES[config.selectedFamily as STM32FamilyKey];
+    this.fileGenerator = new FileGenerator();
   }
 
   private async generateThreadXConfig(): Promise<string> {
@@ -136,11 +139,14 @@ ${this.generateFeatureConfig()}
     ${this.generateDeviceSupport()}
   </devices>
 </package>`;
+
+      const filename = `${this.config.selectedFamily.toLowerCase()}_azure_rtos_pdsc.xml`;
+      this.fileGenerator.addFile(filename, pdscContent);
       
       return {
         success: true,
         message: 'PDSC file generated successfully',
-        files: [`${this.config.outputPath}/package.pdsc`]
+        files: [filename]
       };
     } catch (error) {
       return {
@@ -195,14 +201,15 @@ ${this.generateFeatureConfig()}
   async generateIPMode(): Promise<GenerationResult> {
     try {
       const threadxConfig = await this.generateThreadXConfig();
+      const txUserContent = this.generateTxUserContent();
+      
+      this.fileGenerator.addFile('threadx_config.h', threadxConfig);
+      this.fileGenerator.addFile('tx_user.h', txUserContent);
       
       return {
         success: true,
         message: 'IP Mode files generated successfully',
-        files: [
-          `${this.config.outputPath}/tx_user.h`,
-          `${this.config.outputPath}/threadx_config.h`
-        ]
+        files: ['threadx_config.h', 'tx_user.h']
       };
     } catch (error) {
       return {
@@ -213,29 +220,63 @@ ${this.generateFeatureConfig()}
     }
   }
 
+  private generateTxUserContent(): string {
+    return `
+#ifndef TX_USER_H
+#define TX_USER_H
+
+/* USER CODE BEGIN 1 */
+
+/* USER CODE END 1 */
+
+/* Define various build options for the ThreadX port.  The application should either make changes
+   here by commenting or un-commenting the conditional compilation defined OR supply the defines 
+   though the compiler's equivalent of the -D option.  */
+
+/* For ThreadX/STM32Cube integration, see the following defines: TX_INCLUDE_USER_DEFINE_FILE, TX_CORTEX_M_TYPE,
+   TX_TIMER_TICKS_PER_SECOND, TX_TIMER_PROCESS_IN_ISR, TX_PORT_SPECIFIC_BUILD_OPTIONS */
+
+/* USER CODE BEGIN 2 */
+
+/* USER CODE END 2 */
+
+#endif
+`;
+  }
+
   async generateIPConfig(): Promise<GenerationResult> {
     try {
-      // Generate IP configuration based on selected middleware
-      const configs = [];
       const { middlewareConfig } = this.config.advancedSettings;
+      const files: string[] = [];
       
       if (middlewareConfig.fileX) {
-        configs.push(this.generateFileXConfig());
+        const fxContent = this.generateFileXConfig();
+        this.fileGenerator.addFile('fx_user.h', fxContent);
+        files.push('fx_user.h');
       }
+      
       if (middlewareConfig.netXDuo) {
-        configs.push(this.generateNetXConfig());
+        const nxContent = this.generateNetXConfig();
+        this.fileGenerator.addFile('nx_user.h', nxContent);
+        files.push('nx_user.h');
       }
+      
       if (middlewareConfig.usbX) {
-        configs.push(this.generateUSBXConfig());
+        const uxContent = this.generateUSBXConfig();
+        this.fileGenerator.addFile('ux_user.h', uxContent);
+        files.push('ux_user.h');
       }
+      
       if (middlewareConfig.guix) {
-        configs.push(this.generateGUIXConfig());
+        const gxContent = this.generateGUIXConfig();
+        this.fileGenerator.addFile('gx_user.h', gxContent);
+        files.push('gx_user.h');
       }
       
       return {
         success: true,
         message: 'IP Config files generated successfully',
-        files: configs
+        files
       };
     } catch (error) {
       return {
@@ -264,24 +305,22 @@ ${this.generateFeatureConfig()}
 
   async generateAll(): Promise<GenerationResult> {
     try {
-      const results = await Promise.all([
-        this.generatePDSC(),
-        this.generateIPMode(),
-        this.generateIPConfig()
-      ]);
+      await this.generatePDSC();
+      await this.generateIPMode();
+      await this.generateIPConfig();
       
-      const success = results.every(r => r.success);
-      const files = results.flatMap(r => r.files);
+      const zipFileName = `${this.config.selectedFamily.toLowerCase()}_azure_rtos_package.zip`;
+      await this.fileGenerator.generateZip(zipFileName);
       
       return {
-        success,
-        message: success ? 'All files generated successfully' : 'Some files failed to generate',
-        files
+        success: true,
+        message: 'Complete package generated and downloaded successfully',
+        files: [zipFileName]
       };
     } catch (error) {
       return {
         success: false,
-        message: `Failed to generate files: ${error}`,
+        message: `Failed to generate complete package: ${error}`,
         files: []
       };
     }

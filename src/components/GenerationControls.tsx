@@ -1,13 +1,24 @@
+
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { useConfigStore } from "@/lib/generator/config-store"
 import { Generator } from "@/lib/generator/generator"
 import { toast } from "@/hooks/use-toast"
+import { Download } from "lucide-react"
 
 export function GenerationControls() {
   const { config, status, setStatus, addLog, updateProgress } = useConfigStore()
 
   const handleGenerate = async (type: 'pdsc' | 'ip_mode' | 'ip_config' | 'all') => {
+    if (!config.outputPath) {
+      toast({
+        variant: "destructive",
+        title: "Missing Output Path",
+        description: "Please specify an output path before generating files."
+      });
+      return;
+    }
+
     setStatus({ status: 'generating', message: `Generating ${type}...` })
     updateProgress(0)
     
@@ -76,29 +87,36 @@ export function GenerationControls() {
           <Button 
             onClick={() => handleGenerate('pdsc')}
             disabled={status.status === 'generating'}
+            className="flex items-center space-x-2"
           >
-            Generate PDSC
+            <Download className="w-4 h-4" />
+            <span>Generate PDSC</span>
           </Button>
           <Button 
             onClick={() => handleGenerate('ip_mode')}
             disabled={status.status === 'generating'}
+            className="flex items-center space-x-2"
           >
-            Generate IP Mode
+            <Download className="w-4 h-4" />
+            <span>Generate IP Mode</span>
           </Button>
           <Button 
             onClick={() => handleGenerate('ip_config')}
             disabled={status.status === 'generating'}
+            className="flex items-center space-x-2"
           >
-            Generate IP Config
+            <Download className="w-4 h-4" />
+            <span>Generate IP Config</span>
           </Button>
         </div>
         
         <Button 
-          className="w-full"
+          className="w-full flex items-center justify-center space-x-2"
           onClick={() => handleGenerate('all')}
           disabled={status.status === 'generating'}
         >
-          Generate Complete Package
+          <Download className="w-4 h-4" />
+          <span>Generate Complete Package</span>
         </Button>
       </div>
       
