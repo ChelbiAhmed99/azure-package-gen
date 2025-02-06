@@ -138,7 +138,6 @@ export function GenerationControls() {
           <Progress 
             value={status.progress} 
             className="bg-white/10"
-            indicatorClassName="bg-gradient-to-r from-blue-500 to-cyan-500"
           />
         </div>
       )}
