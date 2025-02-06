@@ -4,7 +4,8 @@ import { Progress } from "@/components/ui/progress"
 import { useConfigStore } from "@/lib/generator/config-store"
 import { Generator } from "@/lib/generator/generator"
 import { toast } from "@/hooks/use-toast"
-import { Download } from "lucide-react"
+import { Download, FileDown, Settings2, FileCode } from "lucide-react"
+import { Card } from "@/components/ui/card"
 
 export function GenerationControls() {
   const { config, status, setStatus, addLog, updateProgress } = useConfigStore()
@@ -82,51 +83,63 @@ export function GenerationControls() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4">
-        <div className="flex items-center space-x-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="p-4 bg-white/10 backdrop-blur-lg border border-white/20 hover:bg-white/20 transition-all duration-200">
           <Button 
             onClick={() => handleGenerate('pdsc')}
             disabled={status.status === 'generating'}
-            className="flex items-center space-x-2"
+            className="w-full flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600"
           >
-            <Download className="w-4 h-4" />
+            <FileDown className="w-4 h-4" />
             <span>Generate PDSC</span>
           </Button>
+        </Card>
+
+        <Card className="p-4 bg-white/10 backdrop-blur-lg border border-white/20 hover:bg-white/20 transition-all duration-200">
           <Button 
             onClick={() => handleGenerate('ip_mode')}
             disabled={status.status === 'generating'}
-            className="flex items-center space-x-2"
+            className="w-full flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600"
           >
-            <Download className="w-4 h-4" />
+            <Settings2 className="w-4 h-4" />
             <span>Generate IP Mode</span>
           </Button>
+        </Card>
+
+        <Card className="p-4 bg-white/10 backdrop-blur-lg border border-white/20 hover:bg-white/20 transition-all duration-200">
           <Button 
             onClick={() => handleGenerate('ip_config')}
             disabled={status.status === 'generating'}
-            className="flex items-center space-x-2"
+            className="w-full flex items-center space-x-2 bg-gradient-to-r from-cyan-600 to-blue-500 hover:from-cyan-700 hover:to-blue-600"
           >
-            <Download className="w-4 h-4" />
+            <FileCode className="w-4 h-4" />
             <span>Generate IP Config</span>
           </Button>
-        </div>
+        </Card>
+      </div>
         
+      <Card className="p-4 bg-white/10 backdrop-blur-lg border border-white/20 hover:bg-white/20 transition-all duration-200">
         <Button 
-          className="w-full flex items-center justify-center space-x-2"
+          className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-purple-600 via-blue-500 to-cyan-500 hover:from-purple-700 hover:via-blue-600 hover:to-cyan-600"
           onClick={() => handleGenerate('all')}
           disabled={status.status === 'generating'}
         >
           <Download className="w-4 h-4" />
           <span>Generate Complete Package</span>
         </Button>
-      </div>
+      </Card>
       
       {status.status === 'generating' && (
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span>Generating...</span>
-            <span>{status.progress}%</span>
+            <span className="text-blue-400">Generating Package...</span>
+            <span className="text-cyan-400">{status.progress}%</span>
           </div>
-          <Progress value={status.progress} />
+          <Progress 
+            value={status.progress} 
+            className="bg-white/10"
+            indicatorClassName="bg-gradient-to-r from-blue-500 to-cyan-500"
+          />
         </div>
       )}
     </div>
