@@ -4,8 +4,9 @@ import { Progress } from "@/components/ui/progress"
 import { useConfigStore } from "@/lib/generator/config-store"
 import { Generator } from "@/lib/generator/generator"
 import { toast } from "@/hooks/use-toast"
-import { Download, FileDown, Settings2, FileCode } from "lucide-react"
+import { Download, FileDown, Settings2, FileCode, Github } from "lucide-react"
 import { Card } from "@/components/ui/card"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 export function GenerationControls() {
   const { config, status, setStatus, addLog, updateProgress } = useConfigStore()
@@ -81,8 +82,35 @@ export function GenerationControls() {
     }
   }
 
+  const handleOpenReference = () => {
+    window.open(`https://github.com/STMicroelectronics/x-cube-azrtos-${config.selectedFamily.toLowerCase()}`, '_blank');
+  }
+
   return (
     <div className="space-y-6">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-cyan-500">
+          Package Generation
+        </h3>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={handleOpenReference}
+                className="bg-white/5 border-white/20 hover:bg-white/10"
+              >
+                <Github className="h-[1.2rem] w-[1.2rem]" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>View Reference Implementation</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="group relative overflow-hidden p-4 hover:shadow-lg transition-all duration-300 bg-white/5 backdrop-blur-lg border border-white/20">
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -94,6 +122,7 @@ export function GenerationControls() {
             <FileDown className="w-4 h-4" />
             <span>Generate PDSC</span>
           </Button>
+          <p className="mt-2 text-xs text-gray-400">Generates Package Description file for STM32 Azure RTOS.</p>
         </Card>
 
         <Card className="group relative overflow-hidden p-4 hover:shadow-lg transition-all duration-300 bg-white/5 backdrop-blur-lg border border-white/20">
@@ -106,6 +135,7 @@ export function GenerationControls() {
             <Settings2 className="w-4 h-4" />
             <span>Generate IP Mode</span>
           </Button>
+          <p className="mt-2 text-xs text-gray-400">Creates ThreadX and Middleware configuration.</p>
         </Card>
 
         <Card className="group relative overflow-hidden p-4 hover:shadow-lg transition-all duration-300 bg-white/5 backdrop-blur-lg border border-white/20">
@@ -118,19 +148,26 @@ export function GenerationControls() {
             <FileCode className="w-4 h-4" />
             <span>Generate IP Config</span>
           </Button>
+          <p className="mt-2 text-xs text-gray-400">Generates configurations for selected IP components.</p>
         </Card>
       </div>
         
-      <Card className="group relative overflow-hidden p-4 hover:shadow-lg transition-all duration-300 bg-white/5 backdrop-blur-lg border border-white/20">
+      <Card className="group relative overflow-hidden p-6 hover:shadow-lg transition-all duration-300 bg-white/5 backdrop-blur-lg border border-white/20">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        <Button 
-          className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-purple-600 via-blue-500 to-cyan-500 hover:from-purple-700 hover:via-blue-600 hover:to-cyan-600 hover:scale-[1.02] transition-all duration-300"
-          onClick={() => handleGenerate('all')}
-          disabled={status.status === 'generating'}
-        >
-          <Download className="w-4 h-4" />
-          <span>Generate Complete Package</span>
-        </Button>
+        <div className="space-y-4">
+          <h4 className="text-sm font-medium text-gray-200">Complete Package Generation</h4>
+          <p className="text-xs text-gray-400">
+            Generates a complete Azure RTOS package including PDSC, IP Mode configurations, and all selected middleware components.
+          </p>
+          <Button 
+            className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-purple-600 via-blue-500 to-cyan-500 hover:from-purple-700 hover:via-blue-600 hover:to-cyan-600 hover:scale-[1.02] transition-all duration-300"
+            onClick={() => handleGenerate('all')}
+            disabled={status.status === 'generating'}
+          >
+            <Download className="w-4 h-4" />
+            <span>Generate Complete Package</span>
+          </Button>
+        </div>
       </Card>
       
       {status.status === 'generating' && (

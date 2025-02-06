@@ -42,6 +42,31 @@ export interface DebugConfig {
   stackMonitoring: boolean;
 }
 
+export interface AzureRTOSConfig {
+  version: string;
+  components: {
+    threadx: boolean;
+    filex: boolean;
+    netxDuo: boolean;
+    usbx: boolean;
+    guix: boolean;
+  };
+  features: {
+    secureEngine: boolean;
+    crypto: boolean;
+    networking: boolean;
+    storage: boolean;
+    display: boolean;
+  };
+}
+
+export interface BuildConfig {
+  compiler: 'GCC' | 'IAR' | 'KEIL';
+  optimization: 'debug' | 'release';
+  floatingPoint: 'hard' | 'soft';
+  trustZone: boolean;
+}
+
 export interface GeneratorConfig {
   azureRTOSVersion: string;
   outputPath: string;
@@ -53,6 +78,8 @@ export interface GeneratorConfig {
     middlewareConfig: MiddlewareConfig;
     debugConfig: DebugConfig;
   };
+  azureRTOS?: AzureRTOSConfig;
+  build?: BuildConfig;
 }
 
 export interface GenerationStatus {

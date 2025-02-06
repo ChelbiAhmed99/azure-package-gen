@@ -159,12 +159,25 @@ ${this.generateFeatureConfig()}
 
   private generateMiddlewareKeywords(): string {
     const { middlewareConfig } = this.config.advancedSettings;
-    const keywords = [];
+    const keywords = [
+      '<keyword>ThreadX</keyword>',
+      '<keyword>CMSIS</keyword>',
+      '<keyword>STM32Cube</keyword>'
+    ];
     
     if (middlewareConfig.fileX) keywords.push('<keyword>FileX</keyword>');
-    if (middlewareConfig.netXDuo) keywords.push('<keyword>NetX Duo</keyword>');
-    if (middlewareConfig.usbX) keywords.push('<keyword>USBX</keyword>');
-    if (middlewareConfig.guix) keywords.push('<keyword>GUIX</keyword>');
+    if (middlewareConfig.netXDuo) {
+      keywords.push('<keyword>NetX Duo</keyword>');
+      keywords.push('<keyword>Networking</keyword>');
+    }
+    if (middlewareConfig.usbX) {
+      keywords.push('<keyword>USBX</keyword>');
+      keywords.push('<keyword>USB</keyword>');
+    }
+    if (middlewareConfig.guix) {
+      keywords.push('<keyword>GUIX</keyword>');
+      keywords.push('<keyword>Display</keyword>');
+    }
     
     return keywords.join('\n    ');
   }
@@ -173,13 +186,30 @@ ${this.generateFeatureConfig()}
     return this.family.series.map(series => `
     <family Dfamily="${series}">
       <processor Dcore="${this.family.cores[0]}"
-                DcoreVersion="r0p0"
+                DcoreVersion="${this.getCoreVersion()}"
                 Dfpu="${this.family.features.fpu ? '1' : '0'}"
                 Dmpu="${this.family.features.trustZone ? '1' : '0'}"
-                Dendian="Little-endian"/>
+                Dendian="Little-endian"
+                Dclock="${this.getDefaultClock(series)}"/>
       ${this.generateMemoryVariants(series)}
     </family>`
     ).join('\n');
+  }
+
+  private getCoreVersion(): string {
+    const core = this.family.cores[0];
+    switch (core) {
+      case 'Cortex-M7': return 'r1p1';
+      case 'Cortex-M4': return 'r0p1';
+      case 'Cortex-M33': return 'r1p0';
+      default: return 'r0p0';
+    }
+  }
+
+  private getDefaultClock(series: string): string {
+    if (series.includes('H7')) return '480000000';
+    if (series.includes('F7')) return '216000000';
+    return '180000000';
   }
 
   private generateMemoryVariants(series: string): string {
