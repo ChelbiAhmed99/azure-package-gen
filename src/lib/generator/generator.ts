@@ -396,22 +396,14 @@ ${this.generateFeatureConfig()}
   async generateH7Package(): Promise<GenerationResult> {
     try {
       // Set up H7-specific configuration
-      const h7Config = {
-        family: 'H7',
-        version: '3.3.0',
-        releaseDescription: 'X-CUBE-AZRTOS-H7 v3.3.0 for STM32Cube',
-        url: 'https://github.com/STMicroelectronics/x-cube-azrtos-h7',
-        keywords: [
-          '<keyword>RTOS</keyword>',
-          '<keyword>ThreadX</keyword>',
-          '<keyword>Azure RTOS</keyword>',
-          '<keyword>STM32Cube</keyword>',
-          '<keyword>H7</keyword>'
-        ].join('\n    ')
+      this.config = {
+        ...this.config,
+        selectedFamily: 'H7',
+        azureRTOSVersion: '3.3.0'
       };
 
       // Generate core files
-      const pdscResult = await this.generatePDSC(h7Config);
+      const pdscResult = await this.generatePDSC();
       const ipModeResult = await this.generateIPMode();
       const ipConfigResult = await this.generateIPConfig();
 
