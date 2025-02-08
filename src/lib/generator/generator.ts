@@ -1,18 +1,29 @@
-
 import { GeneratorConfig, GenerationResult, Template, STM32Family, STM32FamilyKey } from './types';
 import { STM32_FAMILIES } from './stm32-families';
 import { FileGenerator } from './file-generator';
+import { TemplateHandler } from './template-handler';
+import { PackageValidator } from './package-validator';
 
 export class Generator {
   private config: GeneratorConfig;
   private templates: Template[] = [];
   private family: STM32Family;
   private fileGenerator: FileGenerator;
+  private templateHandler: TemplateHandler;
+  private packageValidator: PackageValidator;
 
   constructor(config: GeneratorConfig) {
     this.config = config;
     this.family = STM32_FAMILIES[config.selectedFamily as STM32FamilyKey];
     this.fileGenerator = new FileGenerator();
+    this.templateHandler = new TemplateHandler();
+    this.packageValidator = new PackageValidator();
+
+    // Validate configuration
+    const configErrors = this.packageValidator.validateConfig(config);
+    if (configErrors.length > 0) {
+      throw new Error(`Configuration validation failed:\n${configErrors.join('\n')}`);
+    }
   }
 
   private async generateThreadXConfig(): Promise<string> {
@@ -353,6 +364,12 @@ ${this.generateFeatureConfig()}
         ...ipModeResult.files,
         ...ipConfigResult.files
       ];
+
+      // Validate package structure
+      const structureErrors = this.packageValidator.validatePackageStructure(allFiles);
+      if (structureErrors.length > 0) {
+        throw new Error(`Package structure validation failed:\n${structureErrors.join('\n')}`);
+      }
 
       const zipFileName = `X-CUBE-AZRTOS-${this.config.selectedFamily.toLowerCase()}_v${this.config.azureRTOSVersion}.zip`;
       await this.fileGenerator.generateZip(zipFileName);
