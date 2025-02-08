@@ -124,18 +124,7 @@ ${this.generateFeatureConfig()}
   </keywords>
 
   <conditions>
-    <condition id="ARM Toolchain">
-      <description>ARM compilation tools</description>
-      <require Tcompiler="ARMCC"/>
-    </condition>
-    <condition id="GCC Toolchain">
-      <description>GNU Tools for ARM Embedded Processors</description>
-      <require Tcompiler="GCC"/>
-    </condition>
-    <condition id="IAR Toolchain">
-      <description>IAR compilation tools</description>
-      <require Tcompiler="IAR"/>
-    </condition>
+    ${this.generateConditions()}
   </conditions>
 
   <components>
@@ -165,6 +154,22 @@ ${this.generateFeatureConfig()}
         files: []
       };
     }
+  }
+
+  private generateConditions(): string {
+    return `
+    <condition id="ARM Toolchain">
+      <description>ARM compilation tools</description>
+      <require Tcompiler="ARMCC"/>
+    </condition>
+    <condition id="GCC Toolchain">
+      <description>GNU Tools for ARM Embedded Processors</description>
+      <require Tcompiler="GCC"/>
+    </condition>
+    <condition id="IAR Toolchain">
+      <description>IAR compilation tools</description>
+      <require Tcompiler="IAR"/>
+    </condition>`;
   }
 
   private generateMiddlewareKeywords(): string {
