@@ -39,16 +39,40 @@ export class PackageValidator {
     const errors: string[] = [];
     const requiredFiles = [
       'tx_user.h',
-      'pdsc'
+      'pdsc',
+      'README.md',
+      'LICENSE.md'
     ];
 
+    // Validate core files
     requiredFiles.forEach(file => {
       if (!files.some(f => f.includes(file))) {
         errors.push(`Missing required file: ${file}`);
       }
     });
 
+    // Validate folder structure
+    const requiredFolders = [
+      'Middlewares/ST/threadx',
+      'Projects/Common',
+      'Documentation'
+    ];
+
+    requiredFolders.forEach(folder => {
+      if (!files.some(f => f.includes(folder))) {
+        errors.push(`Missing required folder structure: ${folder}`);
+      }
+    });
+
     return errors;
   }
-}
 
+  validateVersionFormat(version: string): boolean {
+    const versionRegex = /^\d+\.\d+\.\d+$/;
+    return versionRegex.test(version);
+  }
+
+  validatePackageName(family: string, version: string): string {
+    return `STMicroelectronics.X-CUBE-AZRTOS-${family}.${version}`;
+  }
+}

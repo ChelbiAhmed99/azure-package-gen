@@ -387,4 +387,100 @@ ${this.generateFeatureConfig()}
       };
     }
   }
+
+  async generateH7Package(): Promise<GenerationResult> {
+    try {
+      // Set up H7-specific configuration
+      const h7Config = {
+        family: 'H7',
+        version: '3.3.0',
+        releaseDescription: 'X-CUBE-AZRTOS-H7 v3.3.0 for STM32Cube',
+        url: 'https://github.com/STMicroelectronics/x-cube-azrtos-h7',
+        keywords: [
+          '<keyword>RTOS</keyword>',
+          '<keyword>ThreadX</keyword>',
+          '<keyword>Azure RTOS</keyword>',
+          '<keyword>STM32Cube</keyword>',
+          '<keyword>H7</keyword>'
+        ].join('\n    ')
+      };
+
+      // Generate core files
+      const pdscResult = await this.generatePDSC(h7Config);
+      const ipModeResult = await this.generateIPMode();
+      const ipConfigResult = await this.generateIPConfig();
+
+      const allFiles = [
+        ...pdscResult.files,
+        ...ipModeResult.files,
+        ...ipConfigResult.files
+      ];
+
+      // Validate package structure
+      const structureErrors = this.packageValidator.validatePackageStructure(allFiles);
+      if (structureErrors.length > 0) {
+        throw new Error(`Package structure validation failed:\n${structureErrors.join('\n')}`);
+      }
+
+      // Generate package with proper naming
+      const packageName = this.packageValidator.validatePackageName('H7', '3.3.0');
+      const zipFileName = `${packageName}.zip`;
+      
+      // Add documentation
+      this.fileGenerator.addFile('Documentation/README.md', this.generateReadme(h7Config));
+      this.fileGenerator.addFile('Documentation/LICENSE.md', this.generateLicense());
+
+      await this.fileGenerator.generateZip(zipFileName);
+      
+      return {
+        success: true,
+        message: 'H7 package generated successfully',
+        files: [zipFileName]
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: `Failed to generate H7 package: ${error}`,
+        files: []
+      };
+    }
+  }
+
+  private generateReadme(config: any): string {
+    return `# X-CUBE-AZRTOS-${config.family} v${config.version}
+
+This package contains the Azure RTOS middleware for STM32${config.family} series.
+
+## Overview
+
+Azure RTOS is a real-time operating system (RTOS) designed for Internet of Things (IoT) and edge devices. 
+This package provides middleware components including:
+
+- ThreadX
+- FileX
+- NetX Duo
+- USBX
+- GUIX
+
+## Version
+
+- Package version: ${config.version}
+- Azure RTOS version: ${this.config.azureRTOSVersion}
+
+## Documentation
+
+For more information, please visit:
+${config.url}
+`;
+  }
+
+  private generateLicense(): string {
+    return `Copyright (c) 2023 STMicroelectronics.
+All rights reserved.
+
+This software is licensed under terms that can be found in the LICENSE file
+in the root directory of this software component.
+If no LICENSE file comes with this software, it is provided AS-IS.
+`;
+  }
 }
