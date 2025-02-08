@@ -427,7 +427,7 @@ ${this.generateFeatureConfig()}
       const zipFileName = `${packageName}.zip`;
       
       // Add documentation
-      this.fileGenerator.addFile('Documentation/README.md', this.generateReadme(h7Config));
+      this.fileGenerator.addFile('Documentation/README.md', this.generateReadme());
       this.fileGenerator.addFile('Documentation/LICENSE.md', this.generateLicense());
 
       await this.fileGenerator.generateZip(zipFileName);
@@ -446,10 +446,10 @@ ${this.generateFeatureConfig()}
     }
   }
 
-  private generateReadme(config: any): string {
-    return `# X-CUBE-AZRTOS-${config.family} v${config.version}
+  private generateReadme(): string {
+    return `# X-CUBE-AZRTOS-${this.config.selectedFamily} v${this.config.azureRTOSVersion}
 
-This package contains the Azure RTOS middleware for STM32${config.family} series.
+This package contains the Azure RTOS middleware for STM32${this.config.selectedFamily} series.
 
 ## Overview
 
@@ -464,13 +464,13 @@ This package provides middleware components including:
 
 ## Version
 
-- Package version: ${config.version}
+- Package version: ${this.config.azureRTOSVersion}
 - Azure RTOS version: ${this.config.azureRTOSVersion}
 
 ## Documentation
 
 For more information, please visit:
-${config.url}
+https://github.com/STMicroelectronics/x-cube-azrtos-${this.config.selectedFamily.toLowerCase()}
 `;
   }
 
