@@ -2,6 +2,8 @@ export interface STM32Family {
   name: string;
   cores: string[];
   series: string[];
+  supportedBoards?: string[];
+  toolchains?: string[];
   memoryVariants: {
     [key: string]: {
       flashSize: string;
@@ -17,6 +19,20 @@ export interface STM32Family {
     ethernet?: boolean;
     usb?: boolean;
     crypto?: boolean;
+  };
+  azureRTOS?: {
+    threadx?: {
+      applications: string[];
+    };
+    usbx?: {
+      applications: string[];
+    };
+    filex?: {
+      applications: string[];
+    };
+    netxDuo?: {
+      applications: string[];
+    };
   };
 }
 
