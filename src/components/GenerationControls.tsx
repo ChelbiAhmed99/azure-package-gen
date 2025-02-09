@@ -21,25 +21,25 @@ export function GenerationControls() {
       return;
     }
 
-    // Show starting toast
-    toast({
-      title: "Génération en cours",
-      description: `Début de la génération ${type === 'all' ? 'complète' : type}...`,
-    });
-
-    setStatus({ status: 'generating', message: `Génération ${type}...` })
-    updateProgress(0)
-    
-    const generator = new Generator(config)
-    
     try {
+      // Show starting toast
+      toast({
+        title: "Génération en cours",
+        description: `Début de la génération ${type === 'all' ? 'complète' : type}...`,
+      });
+
+      setStatus({ status: 'generating', message: `Génération ${type}...` })
+      updateProgress(0)
+      
+      const generator = new Generator(config)
       let result;
       
       switch (type) {
         case 'pdsc':
           addLog('Démarrage de la génération PDSC...')
+          updateProgress(25)
           result = await generator.generatePDSC()
-          updateProgress(100)
+          updateProgress(75)
           if (result.success) {
             await generator.generateZip(`${config.selectedFamily.toLowerCase()}_pdsc.zip`)
           }
@@ -47,8 +47,9 @@ export function GenerationControls() {
           
         case 'ip_mode':
           addLog('Démarrage de la génération IP Mode...')
+          updateProgress(25)
           result = await generator.generateIPMode()
-          updateProgress(100)
+          updateProgress(75)
           if (result.success) {
             await generator.generateZip(`${config.selectedFamily.toLowerCase()}_ip_mode.zip`)
           }
@@ -56,8 +57,9 @@ export function GenerationControls() {
           
         case 'ip_config':
           addLog('Démarrage de la génération IP Config...')
+          updateProgress(25)
           result = await generator.generateIPConfig()
-          updateProgress(100)
+          updateProgress(75)
           if (result.success) {
             await generator.generateZip(`${config.selectedFamily.toLowerCase()}_ip_config.zip`)
           }
@@ -67,12 +69,14 @@ export function GenerationControls() {
           addLog('Démarrage de la génération du package complet...')
           updateProgress(25)
           result = await generator.generateAll()
-          updateProgress(100)
+          updateProgress(75)
           if (result.success) {
             await generator.generateZip(`${config.selectedFamily.toLowerCase()}_complete_package.zip`)
           }
           break
       }
+      
+      updateProgress(100)
       
       if (result.success) {
         setStatus({ 
@@ -203,4 +207,3 @@ export function GenerationControls() {
     </div>
   )
 }
-
