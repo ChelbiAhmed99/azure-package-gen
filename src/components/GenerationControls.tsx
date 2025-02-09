@@ -15,13 +15,19 @@ export function GenerationControls() {
     if (!config.outputPath) {
       toast({
         variant: "destructive",
-        title: "Missing Output Path",
-        description: "Please specify an output path before generating files."
+        title: "Chemin de sortie manquant",
+        description: "Veuillez spécifier un chemin de sortie avant de générer les fichiers."
       });
       return;
     }
 
-    setStatus({ status: 'generating', message: `Generating ${type}...` })
+    // Show starting toast
+    toast({
+      title: "Génération en cours",
+      description: `Début de la génération ${type === 'all' ? 'complète' : type}...`,
+    });
+
+    setStatus({ status: 'generating', message: `Génération ${type}...` })
     updateProgress(0)
     
     const generator = new Generator(config)
@@ -31,28 +37,40 @@ export function GenerationControls() {
       
       switch (type) {
         case 'pdsc':
-          addLog('Starting PDSC generation...')
+          addLog('Démarrage de la génération PDSC...')
           result = await generator.generatePDSC()
           updateProgress(100)
+          if (result.success) {
+            await generator.generateZip(`${config.selectedFamily.toLowerCase()}_pdsc.zip`)
+          }
           break
           
         case 'ip_mode':
-          addLog('Starting IP Mode generation...')
+          addLog('Démarrage de la génération IP Mode...')
           result = await generator.generateIPMode()
           updateProgress(100)
+          if (result.success) {
+            await generator.generateZip(`${config.selectedFamily.toLowerCase()}_ip_mode.zip`)
+          }
           break
           
         case 'ip_config':
-          addLog('Starting IP Config generation...')
+          addLog('Démarrage de la génération IP Config...')
           result = await generator.generateIPConfig()
           updateProgress(100)
+          if (result.success) {
+            await generator.generateZip(`${config.selectedFamily.toLowerCase()}_ip_config.zip`)
+          }
           break
           
         case 'all':
-          addLog('Starting complete package generation...')
+          addLog('Démarrage de la génération du package complet...')
           updateProgress(25)
           result = await generator.generateAll()
           updateProgress(100)
+          if (result.success) {
+            await generator.generateZip(`${config.selectedFamily.toLowerCase()}_complete_package.zip`)
+          }
           break
       }
       
@@ -62,8 +80,8 @@ export function GenerationControls() {
           message: result.message
         })
         toast({
-          title: "Generation Successful",
-          description: result.message
+          title: "Génération réussie",
+          description: `Les fichiers ${type} ont été générés et téléchargés avec succès.`
         })
       } else {
         throw new Error(result.message)
@@ -72,12 +90,12 @@ export function GenerationControls() {
     } catch (error) {
       setStatus({ 
         status: 'error',
-        message: error instanceof Error ? error.message : 'Generation failed'
+        message: error instanceof Error ? error.message : 'La génération a échoué'
       })
       toast({
         variant: "destructive",
-        title: "Generation Failed",
-        description: error instanceof Error ? error.message : 'An error occurred during generation'
+        title: "Échec de la génération",
+        description: error instanceof Error ? error.message : 'Une erreur est survenue pendant la génération'
       })
     }
   }
@@ -90,7 +108,7 @@ export function GenerationControls() {
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-cyan-500">
-          Package Generation
+          Génération du Package
         </h3>
         <TooltipProvider>
           <Tooltip>
@@ -105,7 +123,7 @@ export function GenerationControls() {
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>View Reference Implementation</p>
+              <p>Voir l'implémentation de référence</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -120,9 +138,9 @@ export function GenerationControls() {
             className="w-full flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 hover:scale-[1.02] transition-all duration-300"
           >
             <FileDown className="w-4 h-4" />
-            <span>Generate PDSC</span>
+            <span>Générer PDSC</span>
           </Button>
-          <p className="mt-2 text-xs text-gray-400">Generates Package Description file for STM32 Azure RTOS.</p>
+          <p className="mt-2 text-xs text-gray-400">Génère le fichier de description du package pour STM32 Azure RTOS.</p>
         </Card>
 
         <Card className="group relative overflow-hidden p-4 hover:shadow-lg transition-all duration-300 bg-white/5 backdrop-blur-lg border border-white/20">
@@ -133,9 +151,9 @@ export function GenerationControls() {
             className="w-full flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 hover:scale-[1.02] transition-all duration-300"
           >
             <Settings2 className="w-4 h-4" />
-            <span>Generate IP Mode</span>
+            <span>Générer IP Mode</span>
           </Button>
-          <p className="mt-2 text-xs text-gray-400">Creates ThreadX and Middleware configuration.</p>
+          <p className="mt-2 text-xs text-gray-400">Crée la configuration ThreadX et Middleware.</p>
         </Card>
 
         <Card className="group relative overflow-hidden p-4 hover:shadow-lg transition-all duration-300 bg-white/5 backdrop-blur-lg border border-white/20">
@@ -146,18 +164,18 @@ export function GenerationControls() {
             className="w-full flex items-center space-x-2 bg-gradient-to-r from-cyan-600 to-blue-500 hover:from-cyan-700 hover:to-blue-600 hover:scale-[1.02] transition-all duration-300"
           >
             <FileCode className="w-4 h-4" />
-            <span>Generate IP Config</span>
+            <span>Générer IP Config</span>
           </Button>
-          <p className="mt-2 text-xs text-gray-400">Generates configurations for selected IP components.</p>
+          <p className="mt-2 text-xs text-gray-400">Génère les configurations pour les composants IP sélectionnés.</p>
         </Card>
       </div>
         
       <Card className="group relative overflow-hidden p-6 hover:shadow-lg transition-all duration-300 bg-white/5 backdrop-blur-lg border border-white/20">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         <div className="space-y-4">
-          <h4 className="text-sm font-medium text-gray-200">Complete Package Generation</h4>
+          <h4 className="text-sm font-medium text-gray-200">Génération du Package Complet</h4>
           <p className="text-xs text-gray-400">
-            Generates a complete Azure RTOS package including PDSC, IP Mode configurations, and all selected middleware components.
+            Génère un package Azure RTOS complet incluant PDSC, configurations IP Mode, et tous les composants middleware sélectionnés.
           </p>
           <Button 
             className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-purple-600 via-blue-500 to-cyan-500 hover:from-purple-700 hover:via-blue-600 hover:to-cyan-600 hover:scale-[1.02] transition-all duration-300"
@@ -165,7 +183,7 @@ export function GenerationControls() {
             disabled={status.status === 'generating'}
           >
             <Download className="w-4 h-4" />
-            <span>Generate Complete Package</span>
+            <span>Générer le Package Complet</span>
           </Button>
         </div>
       </Card>
@@ -185,3 +203,4 @@ export function GenerationControls() {
     </div>
   )
 }
+

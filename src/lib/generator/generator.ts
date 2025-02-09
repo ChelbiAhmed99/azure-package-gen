@@ -1,4 +1,3 @@
-
 import { GeneratorConfig, GenerationResult, Template, STM32Family, STM32FamilyKey } from './types';
 import { STM32_FAMILIES } from './stm32-families';
 import { FileGenerator } from './file-generator';
@@ -171,6 +170,14 @@ export class Generator {
         files: []
       };
     }
+  }
+
+  async generateZip(filename: string): Promise<void> {
+    const fileGenerator = new FileGenerator();
+    fileGenerator.setMetadata('generator', 'ACTIA Engineering Services - X-CUBE Azure RTOS Generator');
+    fileGenerator.setMetadata('version', this.config.azureRTOSVersion);
+    fileGenerator.setMetadata('family', this.config.selectedFamily);
+    await fileGenerator.generateZip(filename);
   }
 
   private generateReadme(): string {
