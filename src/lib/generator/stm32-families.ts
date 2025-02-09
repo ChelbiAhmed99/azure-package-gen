@@ -1,14 +1,24 @@
-
 export const STM32_FAMILIES = {
   STM32H7: {
     name: "STM32H7",
     cores: ["Cortex-M7", "Cortex-M4"],
     series: ["STM32H742", "STM32H743", "STM32H745", "STM32H747", "STM32H750", "STM32H753", "STM32H755", "STM32H757", "STM32H723", "STM32H725", "STM32H730", "STM32H735"],
+    supportedBoards: [
+      "NUCLEO-H723ZG",
+      "STM32H735G-DK",
+      "STM32H747I-DISCO",
+      "STM32H743I-EVAL"
+    ],
     memoryVariants: {
       "1MB": { flashSize: "1MB", ramSize: "1MB" },
       "2MB": { flashSize: "2MB", ramSize: "1MB" },
       "128KB": { flashSize: "128KB", ramSize: "1MB" }
     },
+    toolchains: [
+      "IAR EWARM 8.50.9",
+      "STM32CubeIDE V1.15.0",
+      "MDK-ARM V5.37"
+    ],
     supportedPeripherals: ["GPIO", "UART", "SPI", "I2C", "ADC", "DAC", "TIM", "CAN-FD", "ETH", "USB_OTG", "DCMI", "FMC", "QSPI", "SDMMC", "MDMA"],
     features: {
       fpu: true,
@@ -18,6 +28,74 @@ export const STM32_FAMILIES = {
       ethernet: true,
       usb: true,
       crypto: true
+    },
+    azureRTOS: {
+      threadx: {
+        applications: [
+          "Tx_Thread_Creation",
+          "Tx_Thread_Sync",
+          "Tx_Thread_MsgQueue",
+          "Tx_FreeRTOS_Wrapper",
+          "Tx_CMSIS_Wrapper",
+          "Tx_LowPower",
+          "Tx_MPU"
+        ]
+      },
+      usbx: {
+        applications: [
+          "Ux_Host_MSC",
+          "Ux_Host_HID",
+          "Ux_Host_CDC_ACM",
+          "Ux_Device_MSC",
+          "Ux_Device_CDC_ACM",
+          "Ux_Device_HID",
+          "Ux_Device_CDC_ECM",
+          "Ux_Host_DualClass",
+          "Ux_Device_HID_CDC_ACM",
+          "Ux_Device_DFU",
+          "Ux_Host_HID_CDC_ACM",
+          "Ux_Device_Video",
+          "Ux_Device_DualHID",
+          "Ux_Device_CustomHID",
+          "Ux_Device_RNDIS",
+          "Ux_Device_PIMA_MTP",
+          "Ux_Device_CCID",
+          "Ux_Device_Printer",
+          "Ux_Device_HID_Standalone",
+          "Ux_Host_HID_Standalone",
+          "Ux_Host_HUB_HID_MSC",
+          "Ux_Host_Audio"
+        ]
+      },
+      filex: {
+        applications: [
+          "Fx_uSD_File_Edit",
+          "Fx_MultiAccess",
+          "Fx_NoR_Write_Read_File",
+          "Fx_DualInstance",
+          "Fx_IAP",
+          "Fx_File_Edit_Standalone",
+          "Fx_NAND_Write_Read_File"
+        ]
+      },
+      netxDuo: {
+        applications: [
+          "Nx_TCP_Echo_Server",
+          "Nx_TCP_Echo_Client",
+          "Nx_UDP_Echo_Server",
+          "Nx_UDP_Echo_Client",
+          "Nx_WebServer",
+          "Nx_MQTT_Client",
+          "Nx_Iperf",
+          "Nx_SNTP_Client",
+          "Nx_HTTP_SSE_wifi",
+          "Nx_IAP_Client_wifi",
+          "Nx_Iperf_wifi",
+          "Nx_MDNS_wifi",
+          "Nx_MQTT_Client_wifi",
+          "Nx_Network_Basics_wifi"
+        ]
+      }
     }
   },
   STM32F7: {

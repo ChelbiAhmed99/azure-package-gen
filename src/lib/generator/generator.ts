@@ -424,7 +424,7 @@ ${this.generateFeatureConfig()}
       const zipFileName = `${packageName}.zip`;
       
       // Add documentation
-      this.fileGenerator.addFile('Documentation/README.md', this.generateReadme());
+      this.fileGenerator.addFile('Documentation/README.md', this.generateH7Readme());
       this.fileGenerator.addFile('Documentation/LICENSE.md', this.generateLicense());
 
       await this.fileGenerator.generateZip(zipFileName);
@@ -443,31 +443,48 @@ ${this.generateFeatureConfig()}
     }
   }
 
-  private generateReadme(): string {
-    return `# X-CUBE-AZRTOS-${this.config.selectedFamily} v${this.config.azureRTOSVersion}
+  private generateH7Readme(): string {
+    return `# X-CUBE-AZRTOS-H7 Software Expansion for STM32Cube
 
-This package contains the Azure RTOS middleware for STM32${this.config.selectedFamily} series.
+This package provides a full integration of Microsoft Azure RTOS in the STM32Cube environment for the STM32H7 series of microcontrollers.
 
 ## Overview
 
-Azure RTOS is a real-time operating system (RTOS) designed for Internet of Things (IoT) and edge devices. 
-This package provides middleware components including:
+Azure RTOS complementing the extensive STM32Cube ecosystem provides free development tools, software bricks, and software expansion packages. STM32 users can leverage the rich services of Azure RTOS for tiny, smart, connected devices.
 
-- ThreadX
-- FileX
-- NetX Duo
-- USBX
-- GUIX
+## Prerequisites
 
-## Version
+- USBX, FileX and NetXDuo building requires ThreadX as they are based on RTOS model
+- USBX Host MSC requires FileX Middleware usage
+- USBX Device ECM/RNDIS classes require NetXDuo usage
 
-- Package version: ${this.config.azureRTOSVersion}
-- Azure RTOS version: ${this.config.azureRTOSVersion}
+### Supported Toolchains
+${this.family.toolchains.map(toolchain => `- ${toolchain}`).join('\n')}
 
-## Documentation
+### Supported Boards
+${this.family.supportedBoards.map(board => `- ${board}`).join('\n')}
 
-For more information, please visit:
-https://github.com/STMicroelectronics/x-cube-azrtos-${this.config.selectedFamily.toLowerCase()}
+## Repository Structure
+
+- Drivers: STM32H7 CMSIS, HAL and BSP drivers
+- Middlewares: ThreadX, NetX Duo, FileX, LevelX and USBX stacks
+- Projects: Ready-to-run examples for supported boards
+
+## Applications
+
+### ThreadX Applications
+${this.family.azureRTOS.threadx.applications.map(app => `- ${app}`).join('\n')}
+
+### USBX Applications
+${this.family.azureRTOS.usbx.applications.map(app => `- ${app}`).join('\n')}
+
+### FileX Applications
+${this.family.azureRTOS.filex.applications.map(app => `- ${app}`).join('\n')}
+
+### NetXDuo Applications
+${this.family.azureRTOS.netxDuo.applications.map(app => `- ${app}`).join('\n')}
+
+For detailed documentation and examples, please visit the [STMicroelectronics GitHub repository](https://github.com/STMicroelectronics/x-cube-azrtos-h7).
 `;
   }
 
